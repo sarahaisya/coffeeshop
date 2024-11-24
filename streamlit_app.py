@@ -433,7 +433,6 @@ def about_page():
         """, unsafe_allow_html=True)
     st.markdown("---")  # Separator between members
 
-
     # Add a closing note
     st.markdown("""
     ### Thank You for Visiting!
