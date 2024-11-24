@@ -425,12 +425,15 @@ def about_page():
             st.error("Image not available.")  # Handle broken/missing images
     with cols[1]:
         # Align name and ID in the middle relative to the image
-        st.markdown(f"""
-        <div style="display: flex; flex-direction: column; justify-content: center; height: 100%;">
-            <span style="font-size: 18px; font-weight: bold;">{member['name']}</span>
-            <span style="font-size: 14px; color: gray;">ID: {member['id']}</span>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            f"""
+            <div style="display: flex; flex-direction: column; justify-content: center; height: 100%;">
+                <span style="font-size: 18px; font-weight: bold;">{member['name']}</span>
+                <span style="font-size: 14px; color: gray;">ID: {member['id']}</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
     st.markdown("---")  # Separator between members
 
     # Add a closing note
