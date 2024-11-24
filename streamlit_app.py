@@ -397,7 +397,7 @@ def about_page():
     st.write("---")  # Horizontal line for design
 
     # Use uploaded image and ensure it fits within the page
-    st.image("https://raw.githubusercontent.com/sarahaisya/coffeeshop/main/logo.png", use_column_width=True, caption="Team Logo")
+    st.image("https://raw.githubusercontent.com/sarahaisya/coffeeshop/main/logo.png", use_column_width=True, caption="Coffee Shop")
 
     # Team name and description
     st.markdown("""
@@ -417,15 +417,22 @@ def about_page():
     ]
 
     for member in members:
-        cols = st.columns([1, 3])  # Create columns for image and text
-        with cols[0]:
-            try:
-                st.image(member["image"], use_column_width=True)  # Dynamic width
-            except Exception:
-                st.error("Image not available.")  # Handle broken/missing images
-        with cols[1]:
-            st.markdown(f"**{member['name']}**\nID: {member['id']}")
-        st.markdown("---")  # Separator between members
+    cols = st.columns([1, 3])  # Create columns for image and text
+    with cols[0]:
+        try:
+            st.image(member["image"], use_column_width=True)  # Display image dynamically
+        except Exception:
+            st.error("Image not available.")  # Handle broken/missing images
+    with cols[1]:
+        # Align name and ID in the middle relative to the image
+        st.markdown(f"""
+        <div style="display: flex; flex-direction: column; justify-content: center; height: 100%;">
+            <span style="font-size: 18px; font-weight: bold;">{member['name']}</span>
+            <span style="font-size: 14px; color: gray;">ID: {member['id']}</span>
+        </div>
+        """, unsafe_allow_html=True)
+    st.markdown("---")  # Separator between members
+
 
     # Add a closing note
     st.markdown("""
