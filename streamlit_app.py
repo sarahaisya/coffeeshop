@@ -417,14 +417,18 @@ def about_page():
     ]
 
     for member in members:
-    cols = st.columns([1, 3])  # Create columns for image and text
+    # Define columns for layout
+    cols = st.columns([1, 3])  # Image takes 1 part, text takes 3 parts
+
+    # Image column
     with cols[0]:
         try:
             st.image(member["image"], use_column_width=True)  # Display image dynamically
         except Exception:
-            st.error("Image not available.")  # Handle broken/missing images
+            st.error("Image not available.")  # Handle missing or broken images
+
+    # Text column
     with cols[1]:
-        # Align name and ID in the middle relative to the image
         st.markdown(
             f"""
             <div style="display: flex; flex-direction: column; justify-content: center; height: 100%;">
@@ -434,7 +438,9 @@ def about_page():
             """,
             unsafe_allow_html=True,
         )
-    st.markdown("---")  # Separator between members
+
+    # Add a separator between members
+    st.markdown("---")
 
     # Add a closing note
     st.markdown("""
