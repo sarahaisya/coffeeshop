@@ -397,7 +397,7 @@ def about_page():
     st.write("---")  # Horizontal line for design
 
     # Use uploaded image and ensure it fits within the page
-    st.image("image.png", use_column_width=True, caption="Team Logo")
+    st.image("https://raw.githubusercontent.com/sarahaisya/coffeeshop/main/logo.png", use_column_width=True, caption="Team Logo")
 
     # Team name and description
     st.markdown("""
