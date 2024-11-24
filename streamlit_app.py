@@ -396,6 +396,9 @@ def about_page():
     st.title("About Us")
     st.write("---")  # Horizontal line for design
 
+    # Use uploaded image and ensure it fits within the page
+    st.image("image.png", use_column_width=True, caption="Team Logo")
+
     # Team name and description
     st.markdown("""
     ## Team Name: **Late Comers**
@@ -403,28 +406,27 @@ def about_page():
     We are a group of passionate students from the coffee tech innovation lab. Our goal is to create an efficient and user-friendly coffee shop management application. Meet our incredible team below!
     """)
 
-    # Team Members Section
-    st.markdown("### **Team Members**")
-    
+    # Display each team member attractively
+    st.markdown("### **Team Members:**")
     members = [
-        {"name": "Nadhirah Wardah Binti Ahmad Sayuti", "id": "20001328"},
-        {"name": "Nur Shakirah Binti Zuratmi", "id": "21001193"},
-        {"name": "Nur Dania Adlina Binti Ahmad Jais", "id": "21001719"},
-        {"name": "Nurain Alyaa Binti Hajid", "id": "21001272"},
-        {"name": "Sarah Aisyah Binti Isnani", "id": "21001863"}
+        {"name": "Nadhirah Wardah Binti Ahmad Sayuti", "id": "20001328", "image": "https://raw.githubusercontent.com/sarahaisya/coffeeshop/main/NAD.png"},
+        {"name": "Nur Shakirah Binti Zuratmi", "id": "21001193", "image": "https://raw.githubusercontent.com/sarahaisya/coffeeshop/main/KIRAH.png"},
+        {"name": "Nur Dania Adlina Binti Ahmad Jais", "id": "21001719", "image": "https://raw.githubusercontent.com/sarahaisya/coffeeshop/main/NIA.png"},
+        {"name": "Nurain Alyaa Binti Hajid", "id": "21001272", "image": "https://raw.githubusercontent.com/sarahaisya/coffeeshop/main/AEL.png"},
+        {"name": "Sarah Aisyah Binti Isnani", "id": "21001863", "image": "https://raw.githubusercontent.com/sarahaisya/coffeeshop/main/sarah.jpg"}
     ]
 
-    for idx, member in enumerate(members, start=1):
-        st.markdown(f"""
-        <div style="border: 2px solid #f39c12; border-radius: 10px; padding: 10px; margin-bottom: 10px; background-color: #fef5e7;">
-            <h4 style="color: #d35400;">{idx}. {member['name']}</h4>
-            <p style="font-size: 16px; margin: 0;"><b>ID:</b> {member['id']}</p>
-        </div>
-        """, unsafe_allow_html=True)
+    # Loop to display each member with image and details
+    for member in members:
+        cols = st.columns([1, 3])  # Create columns for image and text
+        with cols[0]:
+            st.image(member["image"], width=100)  # Replace with actual image path
+        with cols[1]:
+            st.markdown(f"**{member['name']}**\nID: {member['id']}")
+        st.write("---")  # Add a separator between members
 
-    # Closing Note
+    # Add a closing note
     st.markdown("""
-    ---
     ### Thank You for Visiting!
     We appreciate your support and hope you enjoy our application. Feel free to reach out for any suggestions or feedback. 😊
     """)
