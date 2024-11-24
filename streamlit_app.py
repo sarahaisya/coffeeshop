@@ -391,23 +391,64 @@ def login_interface():
         if st.button("Login"):
             log_in(email, password)
 
-# Main app functionality
+# Function to display the About Page
+def about_page():
+    st.title("About Us")
+    st.write("---")  # Horizontal line for design
+    
+    # Add team logo or image if available (replace with an actual URL or file path)
+    st.image("https://raw.githubusercontent.com/sarahaisya/coffeeshop/main/logo.png", width=200, caption="Coffee Shop")
+
+    # Team name and description
+    st.markdown("""
+    ## Team Name: **Late Comers**
+    ---
+    We are a group of passionate students from the coffee tech innovation lab. Our goal is to create an efficient and user-friendly coffee shop management application. Meet our incredible team below!
+    """)
+
+    # Display team members
+    st.markdown("### **Team Members:**")
+    st.markdown("""
+    1. **Nadhirah Wardah Binti Ahmad Sayuti** (20001328)
+    2. **Nur Shakirah Binti Zuratmi** (21001193)
+    3. **Nur Dania Adlina Binti Ahmad Jais** (21001719)
+    4. **Nurain Alyaa Binti Hajid** (21001272)
+    5. **Sarah Aisyah Binti Isnani** (21001863)
+    """)
+
+    # Add a separator and a closing note
+    st.write("---")
+    st.markdown("""
+    ### Thank You for Visiting!
+    We appreciate your support and hope you enjoy our application. Feel free to reach out for any suggestions or feedback. 😊
+    """)
+
+
+# Main function to include the About Page in navigation
 def main():
     if not st.session_state.logged_in:
         login_interface()
     else:
         if st.session_state.user_role == "User":
-            page = st.sidebar.radio("Navigation", ["Menu", "Order History",  "Order status","Logout"])
+            page = st.sidebar.radio("Navigation", ["Menu", "Order History", "Order status", "About", "Logout"])
             if page == "Menu":
                 display_menu()
             elif page == "Order History":
                 display_order_history()
             elif page == "Order status":
                 display_order_status()
+            elif page == "About":
+                about_page()
             elif page == "Logout":
                 log_out()
         elif st.session_state.user_role == "Admin":
-            admin_panel()
+            page = st.sidebar.radio("Navigation", ["Admin Panel", "About", "Logout"])
+            if page == "Admin Panel":
+                admin_panel()
+            elif page == "About":
+                about_page()
+            elif page == "Logout":
+                log_out()
 
 if __name__ == "__main__":
     main()
