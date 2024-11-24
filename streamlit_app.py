@@ -395,9 +395,6 @@ def login_interface():
 def about_page():
     st.title("About Us")
     st.write("---")  # Horizontal line for design
-    
-    # Add team logo or image if available (replace with an actual URL or file path)
-    st.image("https://raw.githubusercontent.com/sarahaisya/coffeeshop/main/logo.png", width=200, caption="Coffee Shop")
 
     # Team name and description
     st.markdown("""
@@ -406,19 +403,28 @@ def about_page():
     We are a group of passionate students from the coffee tech innovation lab. Our goal is to create an efficient and user-friendly coffee shop management application. Meet our incredible team below!
     """)
 
-    # Display team members
-    st.markdown("### **Team Members:**")
-    st.markdown("""
-    1. **Nadhirah Wardah Binti Ahmad Sayuti** (20001328)
-    2. **Nur Shakirah Binti Zuratmi** (21001193)
-    3. **Nur Dania Adlina Binti Ahmad Jais** (21001719)
-    4. **Nurain Alyaa Binti Hajid** (21001272)
-    5. **Sarah Aisyah Binti Isnani** (21001863)
-    """)
+    # Team Members Section
+    st.markdown("### **Team Members**")
+    
+    members = [
+        {"name": "Nadhirah Wardah Binti Ahmad Sayuti", "id": "20001328"},
+        {"name": "Nur Shakirah Binti Zuratmi", "id": "21001193"},
+        {"name": "Nur Dania Adlina Binti Ahmad Jais", "id": "21001719"},
+        {"name": "Nurain Alyaa Binti Hajid", "id": "21001272"},
+        {"name": "Sarah Aisyah Binti Isnani", "id": "21001863"}
+    ]
 
-    # Add a separator and a closing note
-    st.write("---")
+    for idx, member in enumerate(members, start=1):
+        st.markdown(f"""
+        <div style="border: 2px solid #f39c12; border-radius: 10px; padding: 10px; margin-bottom: 10px; background-color: #fef5e7;">
+            <h4 style="color: #d35400;">{idx}. {member['name']}</h4>
+            <p style="font-size: 16px; margin: 0;"><b>ID:</b> {member['id']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Closing Note
     st.markdown("""
+    ---
     ### Thank You for Visiting!
     We appreciate your support and hope you enjoy our application. Feel free to reach out for any suggestions or feedback. 😊
     """)
