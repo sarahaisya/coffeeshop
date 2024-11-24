@@ -6,6 +6,10 @@ import matplotlib.pyplot as plt
 import stripe
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+import time
+import random
+import datetime
+import streamlit as st
 
 # Stripe API Initialization
 stripe.api_key = "sk_test_51QNEGrIb4tfjcNCChY8bmoDqK40a8hw3uXbaNrkK1M9dBf6QGSQVGzFjAUQhTylKy81YNaSeN7gNmb92LmI7fK1f005aQm8i8m"  # Replace with your actual Stripe secret key
@@ -25,6 +29,17 @@ if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 if 'user_role' not in st.session_state:
     st.session_state.user_role = None
+if 'coupons' not in st.session_state:
+    st.session_state.coupons = {}
+
+# Function to display notifications
+def display_notifications():
+    # Example: Notify about low stock items
+    low_stock_items = {item: stock for item, stock in st.session_state.inventory.items() if stock < 5}
+    if low_stock_items:
+        st.warning("⚠️ Low Stock Alert!")
+        for item, stock in low_stock_items.items():
+            st.write(f"- {item}: Only {stock} left in stock. Please restock soon!")
 
 # Helper function to store sales data
 def record_sale(drink_type, quantity, total_price, date):
@@ -88,7 +103,26 @@ def log_out():
     st.success("You have logged out.")
     st.rerun()
 
-# Function to confirm order
+# Function to apply coupon
+def apply_coupon(total_cost, coupon_code):
+    # Check if the coupon is valid
+    if coupon_code in st.session_state.coupons:
+        coupon = st.session_state.coupons[coupon_code]
+        # Check if the coupon is still valid based on today's date
+        if datetime.date.today() <= coupon['validity_date']:
+            discount = coupon['discount_percentage']
+            discount_amount = (discount / 100) * total_cost
+            total_cost -= discount_amount
+            st.success(f"Coupon applied! You get a {discount}% discount. Discount amount: RM {discount_amount:.2f}")
+        else:
+            st.error("Coupon has expired.")
+    else:
+        st.error("Invalid coupon code.")
+    return total_cost
+
+
+
+# Function to confirm order with coupon input
 def confirm_order():
     if not st.session_state.cart:
         st.error("Your cart is empty!")
@@ -96,13 +130,23 @@ def confirm_order():
 
     booking_number = f"ORDER-{random.randint(1000, 9999)}"
     total_cost = sum(item['price'] for item in st.session_state.cart)
-    total_preparation_time = 5 * sum(item['quantity'] for item in st.session_state.cart)
 
+    # Set fixed preparation time to 1 minute
+    total_preparation_time = 1* sum(item['quantity'] for item in st.session_state.cart) # 1 minute for every order
+
+    # Display order summary
     st.write(f"### Order Summary")
     st.write(f"Booking Number: {booking_number}")
-    st.write(f"Estimated Preparation Time: {total_preparation_time} minutes")
+    st.write(f"Estimated Preparation Time: {total_preparation_time} minute")
     st.write(f"Total: RM {total_cost:.2f}")
     
+    # Coupon input field
+    coupon_code = st.text_input("Enter Coupon Code (if any)")
+
+    # Apply coupon if a code is entered
+    if coupon_code:
+        total_cost = apply_coupon(total_cost, coupon_code)
+
     # Proceed to Payment
     if st.button("Proceed to Payment"):
         payment_token = "tok_visa"  # Mock token; replace with actual token from Stripe.js
@@ -114,7 +158,8 @@ def confirm_order():
                 'total': total_cost,
                 'items': st.session_state.cart.copy(),
                 'estimated_time': total_preparation_time,
-                'order_date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                'order_date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                'ready_at': (datetime.datetime.now() + datetime.timedelta(minutes=total_preparation_time)).strftime("%Y-%m-%d %H:%M:%S")
             }
             st.session_state.order_history.append(order_details)
 
@@ -136,22 +181,90 @@ def confirm_order():
                     mime="application/pdf"
                 )
 
+            # Clear the cart
             st.session_state.cart.clear()
+
+# Function to check if any orders are ready for pickup
+def check_order_readiness():
+    current_time = datetime.datetime.now()
+    for order in st.session_state.order_history:
+        ready_time = datetime.datetime.strptime(order['ready_at'], "%Y-%m-%d %H:%M:%S")
+        if current_time >= ready_time and not order.get('notified', False):
+            st.info(f"📢 Order {order['booking_number']} is ready for pickup!")
+            order['notified'] = True  # Mark order as notified
+
+# Call the readiness check periodically
+if 'order_history' not in st.session_state:
+    st.session_state.order_history = []
+
+check_order_readiness()
+
+# Function to display the order status page
+def display_order_status():
+    st.title(f"Order Status for {st.session_state.username}")
+
+    # Check if there are any orders
+    if st.session_state.order_history:
+        for order in st.session_state.order_history:
+            # Calculate elapsed and remaining preparation time
+            current_time = datetime.datetime.now()
+            order_time = datetime.datetime.strptime(order['order_date'], "%Y-%m-%d %H:%M:%S")
+            elapsed_time = (current_time - order_time).total_seconds() / 60
+            remaining_time = max(order['estimated_time'] - int(elapsed_time), 0)
+
+            # Display order status
+            if remaining_time > 0:
+                st.warning(f"Your order is being prepared. Estimated wait time: {remaining_time:.0f} minutes.")
+            else:
+                st.success(f"Your order is ready for pickup!")
+                st.balloons()
+
+            # Display order details
+            st.write(f"**Booking Number:** {order['booking_number']}")
+            st.write(f"**Order Date:** {order['order_date']}")
+            st.write(f"**Estimated Ready At:** {order['ready_at']}")
+            st.write("**Items:**")
+            st.table(pd.DataFrame(order['items']))  # Display items in a table format
+            st.write("---")
+    else:
+        st.write("No current orders found.")
+
+    # Refresh button
+    if st.button("Refresh Status"):
+        st.rerun()
+
+
 
 # Display user menu
 def display_menu():
+    display_notifications()
     st.title("Coffee Menu")
+
+    # Dictionary with coffee names and their corresponding image paths or URLs
+    coffee_images = {
+        "Americano":"https://raw.githubusercontent.com/sarahaisya/coffeeshop/main/americano.png",
+        "Latte": "https://raw.githubusercontent.com/sarahaisya/coffeeshop/main/latte.png",
+        "Cappuccino": "https://raw.githubusercontent.com/sarahaisya/coffeeshop/main/cappucino.png",
+        "Macchiato": "https://raw.githubusercontent.com/sarahaisya/coffeeshop/main/machiato.png"
+    }
+
     for coffee, stock in st.session_state.inventory.items():
         base_price = 5.0
         price_options = {'small': base_price - 1, 'regular': base_price, 'big': base_price + 1}
-        st.write(f"{coffee} (Stock: {stock}) - Base Price RM {base_price:.2f}")
+        
+        # Display the coffee name, stock, and image
+        st.write(f"### {coffee} (Stock: {stock})")
+        st.image(coffee_images.get(coffee, "images/default.jpg"), width=150, caption=coffee)  # Fallback to default image
+        
+        # Coffee options
+        st.write(f"Base Price: RM {base_price:.2f}")
         quantity = st.number_input(f"Quantity for {coffee}", min_value=0, max_value=stock, step=1, key=f"{coffee}_qty")
         size = st.selectbox(f"Size for {coffee}", ["small", "regular", "big"], key=f"{coffee}_size")
         sugar = st.selectbox(f"Sugar level for {coffee}", ["less sugar", "regular", "extra sugar"], key=f"{coffee}_sugar")
 
         if quantity > 0:
             price = price_options[size] * quantity
-            if st.button(f"Add {coffee} to Cart"):
+            if st.button(f"Add {coffee} to Cart", key=f"{coffee}_add_to_cart"):
                 st.session_state.cart.append({'item': coffee, 'quantity': quantity, 'size': size, 'sugar': sugar, 'price': price})
                 st.success(f"{coffee} added to cart!")
 
@@ -162,6 +275,7 @@ def display_menu():
         total_cost = sum(item['price'] for item in st.session_state.cart)
         st.write(f"**Total Cost: RM {total_cost:.2f}**")
         confirm_order()
+
 
 # Display order history
 def display_order_history():
@@ -188,15 +302,54 @@ def update_inventory():
             st.session_state.inventory[item] = new_stock
             st.success(f"Stock for {item} updated to {new_stock}.")
 
-# Admin navigation
-def admin_panel():
-    st.sidebar.title("Admin Navigation")
-    nav = st.sidebar.radio("Admin Options", ["Dashboard", "View Sales Report", "Update Inventory", "Manage Orders", "Logout"])
+# Add coupon section in session state
+if 'coupons' not in st.session_state:
+    st.session_state.coupons = {}
 
-    if nav == "Dashboard":
+# Function to create a coupon
+def create_coupon():
+    st.title("Create Coupon")
+    coupon_code = st.text_input("Coupon Code")
+    discount_percentage = st.slider("Discount Percentage", 1, 100, 10)  # Default 10%
+    validity_date = st.date_input("Validity Date")
+
+    if st.button("Create Coupon"):
+        if coupon_code and validity_date:
+            # Store coupon in session state
+            st.session_state.coupons[coupon_code] = {
+                'discount_percentage': discount_percentage,
+                'validity_date': validity_date
+            }
+            st.success(f"Coupon '{coupon_code}' created successfully!")
+        else:
+            st.error("Please provide a valid coupon code and validity date.")
+
+# Function to manage coupons
+def manage_coupons():
+    st.title("Manage Coupons")
+    if st.session_state.coupons:
+        st.write("### Available Coupons")
+        for coupon_code, details in st.session_state.coupons.items():
+            st.write(f"**Coupon Code:** {coupon_code}")
+            st.write(f"**Discount Percentage:** {details['discount_percentage']}%")
+            st.write(f"**Validity Date:** {details['validity_date']}")
+            st.write("---")
+    else:
+        st.write("No coupons available.")
+
+# Update the Admin navigation to include the coupon creation
+def admin_panel():
+    display_notifications()
+    st.sidebar.title("Admin Navigation")
+    nav = st.sidebar.radio("Admin Options", ["View Sales Report", "Create Coupon", "Manage Coupons", "Update Inventory", "Manage Orders", "Logout"])
+
+   
+    if nav == "View Sales Report":
         admin_dashboard()
-    elif nav == "View Sales Report":
-        admin_dashboard()
+    elif nav == "Create Coupon":
+        create_coupon()  # Calls the coupon creation function
+    elif nav == "Manage Coupons":
+        manage_coupons()  # Calls the manage coupons function
     elif nav == "Update Inventory":
         update_inventory()  # Calls the updated inventory management function
     elif nav == "Manage Orders":
@@ -244,11 +397,13 @@ def main():
         login_interface()
     else:
         if st.session_state.user_role == "User":
-            page = st.sidebar.radio("Navigation", ["Menu", "Order History", "Logout"])
+            page = st.sidebar.radio("Navigation", ["Menu", "Order History",  "Order status","Logout"])
             if page == "Menu":
                 display_menu()
             elif page == "Order History":
                 display_order_history()
+            elif page == "Order status":
+                display_order_status()
             elif page == "Logout":
                 log_out()
         elif st.session_state.user_role == "Admin":
