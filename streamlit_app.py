@@ -438,6 +438,7 @@ def main():
         login_interface()
     else:
         if st.session_state.user_role == "User":
+            # Add "About" to the user navigation menu
             page = st.sidebar.radio("Navigation", ["Menu", "Order History", "Order status", "About", "Logout"])
             if page == "Menu":
                 display_menu()
@@ -445,15 +446,16 @@ def main():
                 display_order_history()
             elif page == "Order status":
                 display_order_status()
-            elif page == "About":
+            elif page == "About":  # Link to About Page
                 about_page()
             elif page == "Logout":
                 log_out()
         elif st.session_state.user_role == "Admin":
+            # Add "About" to the admin navigation menu
             page = st.sidebar.radio("Navigation", ["Admin Panel", "About", "Logout"])
             if page == "Admin Panel":
                 admin_panel()
-            elif page == "About":
+            elif page == "About":  # Link to About Page
                 about_page()
             elif page == "Logout":
                 log_out()
