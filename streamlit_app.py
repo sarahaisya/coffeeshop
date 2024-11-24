@@ -416,10 +416,18 @@ def about_page():
         {"name": "Sarah Aisyah Binti Isnani", "id": "21001863", "image": "https://raw.githubusercontent.com/sarahaisya/coffeeshop/main/sarah.jpg"}
     ]
 
-    for idx, member in enumerate(members, start=1):
-        st.markdown(f"**{idx}. {member['name']}**\nID: {member['id']}")
-        st.write("---")
+    for member in members:
+        cols = st.columns([1, 3])  # Create columns for image and text
+        with cols[0]:
+            try:
+                st.image(member["image"], use_column_width=True)  # Dynamic width
+            except Exception:
+                st.error("Image not available.")  # Handle broken/missing images
+        with cols[1]:
+            st.markdown(f"**{member['name']}**\nID: {member['id']}")
+        st.markdown("---")  # Separator between members
 
+    # Add a closing note
     st.markdown("""
     ### Thank You for Visiting!
     We appreciate your support and hope you enjoy our application. Feel free to reach out for any suggestions or feedback. 😊
